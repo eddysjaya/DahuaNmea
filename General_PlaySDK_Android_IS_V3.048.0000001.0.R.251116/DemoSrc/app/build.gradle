@@ -1,0 +1,46 @@
+apply plugin: 'com.android.application'
+android {
+    namespace 'com.company.PlaySDKDemo'
+    compileSdk 34
+    ndkVersion '16.1.4479499'
+    defaultConfig {
+        minSdk 26
+        targetSdk 26
+
+        // 设置NDK的abiFilters，这样NDK只会为支持的ABI编译相应的库
+        ndk {
+            //noinspection ChromeOsAbiSupport
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'armeabi'
+        }
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DPLATFORM=ANDROID"
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            //path '../../../../Src/CameraVideoRecorder/Android/CMakeLists.txt'
+            //path '../../../../CMakeLists.txt'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+        debug {
+            debuggable true
+            jniDebuggable true
+            minifyEnabled false
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.android.support:support-v4:26.1.0'
+    implementation files('src/main/java/com/company/PlaySDK/IPlaySDK.jar')
+}

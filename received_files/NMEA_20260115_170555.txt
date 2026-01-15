@@ -1,0 +1,6 @@
+# NMEA GPS Tracking for DSJ Camera (Retroactive)
+# Video: 17.05.55-17.06.07[R][0@0][0].mp4
+# Created: 2026-01-15 17:06:08
+# GPS Points: 1
+# Duration: 12s
+$GPGGA,170624.000,0611.8592,S,10647.7218,E,1,08,0.8,40.4,M,0.0,M,,*4F

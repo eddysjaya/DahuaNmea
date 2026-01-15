@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:title="File Transfer"
+            app:titleTextColor="@android:color/white"
+            app:navigationIcon="@drawable/ic_back" />
+    
+    </com.google.android.material.appbar.AppBarLayout>
+    
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+            
+            <!-- File Summary -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardElevation="2dp">
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Recorded Files"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorPrimary" />
+                    
+                    <TextView
+                        android:id="@+id/tvTotalFiles"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Total: 0 sessions"
+                        android:textSize="14sp" />
+                    
+                    <TextView
+                        android:id="@+id/tvTotalSize"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Size: 0 MB"
+                        android:textSize="14sp" />
+                    
+                    <TextView
+                        android:id="@+id/tvNoFiles"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="No recorded files found"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/darker_gray"
+                        android:visibility="gone" />
+                
+                </LinearLayout>
+            
+            </com.google.android.material.card.MaterialCardView>
+            
+            <!-- Transfer Buttons -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardElevation="2dp">
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Transfer Options"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorPrimary"
+                        android:layout_marginBottom="12dp" />
+                    
+                    <Button
+                        android:id="@+id/btnExportZip"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Export to ZIP"
+                        android:textAllCaps="false"
+                        app:icon="@drawable/ic_archive"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+                    
+                    <Button
+                        android:id="@+id/btnCopyUsb"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Copy to USB Folder"
+                        android:textAllCaps="false"
+                        app:icon="@drawable/ic_usb"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+                    
+                    <Button
+                        android:id="@+id/btnTransferWifi"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Transfer via WiFi"
+                        android:textAllCaps="false"
+                        app:icon="@drawable/ic_wifi"
+                        style="@style/Widget.Material3.Button.OutlinedButton" />
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Note: For WiFi transfer, run server on PC first"
+                        android:textSize="12sp"
+                        android:textColor="@android:color/darker_gray" />
+                
+                </LinearLayout>
+            
+            </com.google.android.material.card.MaterialCardView>
+            
+            <!-- Delete Button -->
+            <Button
+                android:id="@+id/btnDeleteAll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Delete All Files"
+                android:textAllCaps="false"
+                android:backgroundTint="@android:color/holo_red_dark"
+                app:icon="@drawable/ic_delete" />
+            
+            <!-- Progress -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical"
+                android:gravity="center">
+                
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+                
+                <TextView
+                    android:id="@+id/tvProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+            
+            </LinearLayout>
+        
+        </LinearLayout>
+    
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

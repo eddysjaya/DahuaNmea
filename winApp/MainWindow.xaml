@@ -1,0 +1,198 @@
+<Window x:Class="DahuaNmeaViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="Dahua NMEA Viewer" Height="700" Width="1200"
+        WindowStartupLocation="CenterScreen">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Top Toolbar -->
+        <Border Grid.Row="0" Background="#2C3E50" Padding="10">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="btnDownload" Content="📥 Download from Device" Click="BtnDownload_Click" 
+                        Background="#27AE60" Foreground="White" FontWeight="Bold"/>
+                <Button x:Name="btnRefresh" Content="🔄 Refresh List" Click="BtnRefresh_Click"
+                        Background="#3498DB" Foreground="White"/>
+                <Button x:Name="btnClearAll" Content="🗑 Clear All Sessions" Click="BtnClearAll_Click"
+                        Background="#E74C3C" Foreground="White"/>
+                <Button x:Name="btnSettings" Content="⚙ Settings" Click="BtnSettings_Click"
+                        Background="#95A5A6" Foreground="White"/>
+                <TextBlock x:Name="txtStatus" Foreground="White" Margin="20,0,0,0" 
+                           VerticalAlignment="Center" FontStyle="Italic"/>
+            </StackPanel>
+        </Border>
+        
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left Panel: File List -->
+            <Border Grid.Column="0" BorderBrush="#BDC3C7" BorderThickness="0,0,1,0" Background="#ECF0F1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Text="📁 Recorded Sessions" FontSize="16" FontWeight="Bold"
+                               Margin="10" Foreground="#2C3E50"/>
+                    
+                    <ListBox x:Name="lstSessions" Grid.Row="1" Margin="5"
+                             SelectionChanged="LstSessions_SelectionChanged"
+                             Background="White" BorderBrush="#BDC3C7">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="5" Padding="8" Background="White" 
+                                        BorderBrush="#BDC3C7" BorderThickness="1" CornerRadius="4">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        
+                                        <TextBlock Grid.Row="0" Text="{Binding DisplayName}" 
+                                                   FontWeight="Bold" FontSize="12" Foreground="#2C3E50"/>
+                                        <TextBlock Grid.Row="1" Text="{Binding TimeInfo}" 
+                                                   FontSize="10" Foreground="#7F8C8D" Margin="0,2,0,0"/>
+                                        <TextBlock Grid.Row="2" Text="{Binding SizeInfo}" 
+                                                   FontSize="10" Foreground="#7F8C8D" Margin="0,2,0,0"/>
+                                        
+                                        <Separator Grid.Row="3" Margin="0,5"/>
+                                        
+                                        <TextBlock Grid.Row="4" FontSize="9" Foreground="#95A5A6" TextWrapping="Wrap">
+                                            <Run Text="📹 Video: "/>
+                                            <Run Text="{Binding VideoFileName}" FontWeight="SemiBold"/>
+                                        </TextBlock>
+                                        <TextBlock Grid.Row="5" FontSize="9" Foreground="#95A5A6" TextWrapping="Wrap" Margin="0,2,0,0">
+                                            <Run Text="📍 NMEA: "/>
+                                            <Run Text="{Binding NmeaFileName}" FontWeight="SemiBold"/>
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+            
+            <!-- Right Panel: Video and Map -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="2.5*"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <!-- Video Player -->
+                    <Border Grid.Column="0" Background="Black" Margin="5">
+                        <Grid>
+                            <MediaElement x:Name="mediaPlayer" LoadedBehavior="Manual" 
+                                        ScrubbingEnabled="True" Stretch="Uniform"
+                                        MediaOpened="MediaPlayer_MediaOpened"
+                                        MediaEnded="MediaPlayer_MediaEnded"/>
+                            <TextBlock x:Name="txtVideoPlaceholder" Text="📹 No video selected"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                                     Foreground="White" FontSize="24" FontWeight="Bold"/>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Map View -->
+                    <Border Grid.Column="1" Background="White" Margin="5">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <Grid Grid.Row="0">
+                                <wv2:WebView2 x:Name="mapWebView" />
+                                <TextBlock x:Name="txtMapPlaceholder" Text="🗺 No GPS data"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                                         Foreground="Gray" FontSize="24" FontWeight="Bold"/>
+                            </Grid>
+                            
+                            <!-- File Info Display -->
+                            <Border Grid.Row="1" Background="#ECF0F1" BorderBrush="#BDC3C7" BorderThickness="0,1,0,0" Padding="8">
+                                <StackPanel>
+                                    <TextBlock>
+                                        <Run Text="📹 Video: " Foreground="#E67E22" FontWeight="Bold"/>
+                                        <Run x:Name="txtCurrentVideoFile" Text="-" Foreground="#2C3E50"/>
+                                    </TextBlock>
+                                    <TextBlock Margin="0,3,0,0">
+                                        <Run Text="📍 NMEA: " Foreground="#27AE60" FontWeight="Bold"/>
+                                        <Run x:Name="txtCurrentNmeaFile" Text="-" Foreground="#2C3E50"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+                
+                <!-- Video Controls -->
+                <Border Grid.Row="1" Background="#34495E" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <Button x:Name="btnPlay" Content="▶" Click="BtnPlay_Click" Width="50"
+                                    Background="#27AE60" Foreground="White" FontSize="18"/>
+                            <Button x:Name="btnPause" Content="⏸" Click="BtnPause_Click" Width="50"
+                                    Background="#E67E22" Foreground="White" FontSize="18"/>
+                            <Button x:Name="btnStop" Content="⏹" Click="BtnStop_Click" Width="50"
+                                    Background="#E74C3C" Foreground="White" FontSize="18"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="20,0">
+                            <TextBlock x:Name="txtCurrentTime" Text="00:00" Foreground="White" Width="50"/>
+                            <Slider x:Name="sliderProgress" VerticalAlignment="Center" 
+                                   Minimum="0" Maximum="100" Width="300"
+                                   ValueChanged="SliderProgress_ValueChanged"/>
+                            <TextBlock x:Name="txtTotalTime" Text="00:00" Foreground="White" Width="50" Margin="10,0,0,0"/>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <TextBlock Text="🔊" Foreground="White" VerticalAlignment="Center"/>
+                            <Slider x:Name="sliderVolume" Width="100" Minimum="0" Maximum="1" Value="0.5"
+                                   ValueChanged="SliderVolume_ValueChanged" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+        
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#2C3E50" Padding="10,5">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock x:Name="txtStatusBar" Text="Ready" Foreground="White" FontSize="12"/>
+                <TextBlock Grid.Column="1" x:Name="txtGpsInfo" Foreground="#1ABC9C" FontSize="12"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

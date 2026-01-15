@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+	<meta http-equiv="Expires" content="0" />
+<link rel="stylesheet" href="css/style.css"></head>
+<body>
+	<div class="container">
+		<div class="tab">
+			<span id="device_ipc_tab">IPC/SD</span>
+			<label style="display: inline-block;width: 100px;text-align: right;" t="com.Language">Language</label>
+			<select id="onChangeLanguage" style="width:80px">
+				<option value="SimpChinese">中文</option>
+				<option value="English" selected>English</option>
+			</select>
+		</div>
+		<div class="content" id="device_ipc_content">
+			<div class="h5-left" style="width: 120px;">
+				<div class="h5-form-item">
+					<input type="button" btn-for="onStartAll" class="h5-button" t="com.OpenAll" style="cursor: pointer;"/>
+				</div>
+				<ul class="h5-menu-list">
+					<li data-ip="172.28.6.11" data-port="80" data-user="admin" data-pswd="admin123" t="com.Device+ 1">Device 1</li>
+					<li data-ip="172.27.2.211" data-port="80" data-user="admin" data-pswd="admin123" t="com.Device+ 2">Device 2</li>
+					<li data-ip="172.28.6.11" data-port="80" data-user="admin" data-pswd="web@123456" t="com.Device+ 3">Device 3</li>
+					<li data-ip="172.28.6.11" data-port="80" data-user="admin" data-pswd="web@123456" t="com.Device+ 4">Device 4</li>
+					<li data-ip="172.28.6.11" data-port="80" data-user="admin" data-pswd="web@123456" t="com.Device+ 5">Device 5</li>
+					<li data-ip="172.28.6.11" data-port="80" data-user="admin" data-pswd="web@123456" t="com.Device+ 6">Device 6</li>
+				</ul>
+			</div>
+			<div class="h5-left">
+				<div class="h5-play-wrap">
+				</div>
+				<div class="h5-form-item" style="margin-top: 20px;">
+					<label t="com.SplitWindow">Split Windows</label>
+					<select class="h5-select" sel-for="onChangeWdnNum">
+						<option value="1">1x1</option>
+						<option value="2">2x2</option>
+						<option value="3" selected>3x3</option>
+						<option value="4">4x4</option>
+					</select>
+				</div>
+				<div class="h5-form-item fn-clear">
+					<label t="com.Stream Type"></label>
+					<select id="h5_stream" sel-for="onChangeStream"></select>
+				</div>
+				<div class="h5-form-item fn-clear">
+					<label t="com.ChannelList"></label>
+					<select id="h5_channel" sel-for="onChangeChannel"></select>
+				</div>
+				<div  class="h5-form-item fn-clear">
+					<label t="com.IVSEnable"></label>
+					<select id="h5_ivs">
+						<option value="0" t="com.No"></option>
+						<option value="1" t="com.Yes"></option>
+					</select>
+				</div>
+				<div class="h5-form-item fn-clear">
+					<label t="com.Volume"></label>
+					<input type="range" id="h5_volume" min="0" max="1" step="0.1" value="0.5">
+					<span id="h5_volume_value"></span>
+					<span>(0~1)</span>
+				</div>
+				<div class="h5-form-item fn-clear">
+					<input type="button" class="h5-button" t="com.OpenSound" btn-for="onTurnOnSound">
+					<input type="button" class="h5-button fn-marl10" t="com.TurnSoundOff" btn-for="onTurnSoundOff">
+					<input type="button" class="h5-button fn-marl10" t="com.EnableIntercom" btn-for="onStartTalk">
+					<input type="button" class="h5-button fn-marl10" t="com.DisableIntercom" btn-for="onStopTalk">
+				</div>
+				<div class="h5-form-item fn-clear">
+					<input type="button" class="h5-button" t="com.Snap" btn-for="onSnap">
+					<input type="button" class="h5-button fn-marl10" t="com.StartRecord" btn-for="onStartRecord">
+					<input type="button" class="h5-button fn-marl10" t="com.StopRecord" btn-for="onStopRecord">
+				</div>
+				<div class="h5-form-item fn-clear">
+					<input type="button" class="h5-button" style="width: 130px;" t="com.EnableDigital" btn-for="onStartEnlarge">
+					<input type="button" class="h5-button fn-marl10" style="width: 130px;" t="com.DisableDigital" btn-for="onStopEnlarge">
+				</div>
+				<div class="h5-form-item fn-clear">
+					<input type="button" class="h5-button" style="width: 130px;" t="com.EnableLocalMagnify" btn-for="onStartGridEnlarge">
+					<input type="button" class="h5-button fn-marl10" style="width: 130px;" t="com.DisableLocalMagnify" btn-for="onCloseGridEnlarge">
+					<input type="button" class="h5-button" t="com.FullScreen" btn-for="onSetFull">
+				</div>
+				<div class="h5-form-item fn-clear">
+					<input type="button" btn-for="onStopPreview" class="h5-button" style="width: 195px;" t="com.StopCurStream">
+					<input type="button" btn-for="onStopAllPreview" style="width: 195px;" class="h5-button fn-marl10" t="com.StopAllStream" style="cursor: pointer;"/>
+				</div>
+				<div class="h5-form-item fn-clear">
+					<input type="button" btn-for="onLogout" class="h5-button" style="width: 180px;" t="com.LogoutCur">
+					<input type="button" btn-for="onLogoutAll" style="width: 180px;" class="h5-button fn-marl10" t="com.LogoutAll" style="cursor: pointer;"/>
+				</div>
+			</div>
+			<div class="h5-right">
+				<fieldset class="h5-fieldset-wrap">
+					<legend t="com.PtzControl"></legend>
+					<div class="h5-step-wrap">
+						<span t="com.Step"></span>
+						<select id="h5_ptz_step" style="width: 130px;">
+							<option value="1">1</option>
+							<option value="2">2</option>
+							<option value="3">3</option>
+							<option value="4">4</option>
+							<option value="5" selected="">5</option>
+							<option value="6">6</option>
+							<option value="7">7</option>
+							<option value="8">8</option>
+						</select>
+					</div>
+					<div class="h5-ptz-wrap">
+						<input type="button" class="h5-button" t="com.LeftUp" onmousedown="onHandlePTZ('LeftUp', false)" onmouseup="onHandlePTZ('LeftUp', true)">
+						<input type="button" class="h5-button" t="com.Up"  onmousedown="onHandlePTZ('Up', false)" onmouseup="onHandlePTZ('Up', true)">
+						<input type="button" class="h5-button" t="com.RightUp" onmousedown="onHandlePTZ('RightUp', false)" onmouseup="onHandlePTZ('RightUp', true)">
+						<input type="button" class="h5-button" t="com.Left" onmousedown="onHandlePTZ('Left', false)" onmouseup="onHandlePTZ('Left', true)">
+						<input type="button" class="h5-button" t="com.Right" onmousedown="onHandlePTZ('Right', false)" onmouseup="onHandlePTZ('Right', true)">
+						<input type="button" class="h5-button" t="com.LeftDown" onmousedown="onHandlePTZ('LeftDown', false)" onmouseup="onHandlePTZ('LeftDown', true)">
+						<input type="button" class="h5-button" t="com.Down" onmousedown="onHandlePTZ('Down', false)" onmouseup="onHandlePTZ('Down', true)">
+						<input type="button" class="h5-button" t="com.RightDown" onmousedown="onHandlePTZ('RightDown', false)" onmouseup="onHandlePTZ('RightDown', true)">
+					</div>
+					<div class="h5-zoomfocus-wrap">
+						<input type="button" class="h5-button" t="com.ZoomWide" onmousedown="onHandlePTZ('ZoomWide', false)" onmouseup="onHandlePTZ('ZoomWide', true)">
+						<input type="button" class="h5-button" t="com.ZoomTele"  onmousedown="onHandlePTZ('ZoomTele', false)" onmouseup="onHandlePTZ('ZoomTele', true)">
+						<input type="button" class="h5-button" t="com.FocusFar"  onmousedown="onHandlePTZ('FocusFar', false)" onmouseup="onHandlePTZ('FocusFar', true)">
+						<input type="button" class="h5-button" t="com.FocusNear"  onmousedown="onHandlePTZ('FocusNear', false)" onmouseup="onHandlePTZ('FocusNear', true)">
+						<input type="button" class="h5-button" t="com.IrisSmall"  onmousedown="onHandlePTZ('IrisSmall', false)" onmouseup="onHandlePTZ('IrisSmall', true)">
+						<input type="button" class="h5-button" t="com.IrisLarge"  onmousedown="onHandlePTZ('IrisLarge', false)" onmouseup="onHandlePTZ('IrisLarge', true)">
+					</div>
+					<div class="h5-preset-wrap">
+						<div class="h5-item-form" style="margin-bottom: 10px;">
+							<label t="com.Preset"></label>
+							<input type="text" id="h5_preset">
+						</div>
+						<input type="button" class="h5-button" t="com.Go" onclick="onHandlePTZ('GotoPreset', false)">
+						<input type="button" class="h5-button" t="com.Add" onclick="onHandlePTZ('SetPreset', false)">
+						<input type="button" class="h5-button" t="com.Delete" onclick="onHandlePTZ('ClearPreset', false)" >
+					</div>
+				</fieldset>
+				<fieldset class="h5-fieldset-wrap" style="width: 600px;">
+					<legend t="com.Playback"></legend>
+					<div class="h5-form-item">
+						<label t="com.StartTime"></label>
+						<input type="datetime-local" step="1" style="width: 170px;" id="h5_startTime">
+					</div>
+					<div class="h5-form-item" style="margin-left: 20px;">
+						<label t="com.EndTime"></label>
+						<input type="datetime-local" step="1" style="width: 170px;" id="h5_endTime">
+					</div>
+					<div class="h5-form-item">
+						<label t="com.ChannelList"></label>
+						<select class="h5-select" id="h5_playback_channel"></select>
+						<input type="button" class="h5-button fn-marl10" t="com.Search" btn-for="onSearchRecord">
+					</div>
+					<table class="h5-table" id="h5_table">
+						<thead>
+							<tr>
+								<td style="width: 50px;"><input type="checkbox" btn-for="onCheckAll" id="h5_checkAll"></td>
+								<td style="width: 50px;" t="com.Index"></td>
+								<td style="width: 260px;" t="com.Time"></td>
+								<td style="width: 85px;" t="com.FileSize"></td>
+								<td style="width: 165px;" t="com.TimeStamp"></td>
+							</tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+					<div class="h5-form-item fn-mart10" >
+						<input type="button" btn-for="onDownload" class="h5-button" style="width:80px" t="com.Download">
+						<span t="com.DownloadProgress"><span id="h5_down_process"></span></span>
+						<a id="h5_first" class="h5-link" style="margin-left: 35px;"  href="javascript:;" t="com.FirstPage"></a>
+						<a id="h5_pre" class="h5-link" href="javascript:;" t="com.Prepage"></a>
+						<span>
+							<span id="h5_curPage">1</span>/<span id="h5_totalPage">1</span>
+						</span>
+						<a id="h5_next" class="h5-link" href="javascript:;" t="com.NextPage"></a>
+						<a id="h5_last" class="h5-link" href="javascript:;" t="com.LastPage"></a>
+						<input type="text" style="width: 30px;" id="h5_goNumber">
+						<input type="button" t="com.GO" id="h5_goPage" style="width: 40px">
+					</div>
+					<div class="h5-form-item  fn-mart10">
+						<input type="button" t="com.DoubleClickToPlayback" disabled class="h5-button" style="width: 210px;" btn-for="onPausePlayback">
+						<input type="button" t="com.Pause" class="h5-button" btn-for="onPausePlayback">
+						<input type="button" t="com.Continue" class="h5-button" btn-for="onContinuePlayback">
+						<input type="button" t="com.EndPlayback" class="h5-button" btn-for="onClosePlayback">
+					</div>
+					<div class="h5-form-item  fn-mart10" style="display: none;">
+						<span t="com.CurPlaybackSecond"></span>
+						<span id="h5_curTime">--</span>
+						<span>/</span>
+						<span id="h5_totalTime">--</span>
+						<input type="text" id="h5_goTime" style="width: 50px;">
+						<input type="button" class="h5-button" btn-for="onGoTime" t="com.Go">
+					</div>
+					<div class="h5-form-item fn-mart10">
+						<label t="com.CropStartTime"></label>
+						<input type="datetime-local" step="1" style="width: 170px;" id="h5_cutStartTime">
+						<span> - </span>
+						<input type="datetime-local" step="1" style="width: 170px;" id="h5_cutEndTime">
+					</div>
+					<div class="h5-form-item fn-mart10">
+						<input type="button" class="h5-button" style="width:180px" btn-for="onStartCut" t="com.StartCrop"/>
+						<span t="com.CropProgress"><span id="h5_cut_process"></span></span>
+					</div>
+				</fieldset>
+			</div>
+		</div>
+	</div>
+<script src="module/PlayerControl.js"></script><script src="index.js"></script></body>
+</html>

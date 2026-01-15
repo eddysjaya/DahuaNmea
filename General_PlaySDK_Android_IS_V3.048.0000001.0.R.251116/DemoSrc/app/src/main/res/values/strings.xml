@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, PlayDemoActivity!</string>
+    <string name="app_name">PlayDemo</string>
+    
+    <!-- demo activity -->
+	<string name="demo_activity_file">Select file</string>
+	<string name="demo_activity_mode_file">File</string>
+	<string name="demo_activity_mode_stream">Stream</string>
+	<string name="demo_activity_play">Play</string>
+	<string name="demo_activity_pause">Pause</string>
+	<string name="demo_activity_stop">Stop</string>
+	<string name="demo_activity_volume">Volume</string>
+	<string name="demo_activity_fast">Fast</string>
+	<string name="demo_activity_slow">Slow</string>
+	<string name="demo_activity_normal">Normal</string>
+	<string name="demo_activity_quality">Quality</string>
+	<string name="demo_activity_capture">Capture</string>
+	<string name="demo_activity_aec_sw">SW AEC</string>
+	<string name="demo_activity_aec_hw">HW AEC</string>
+	<string name="demo_activity_stopcapture">Stop Capture</string>
+	<string name="demo_activity_snappitcure">SnapPict</string>
+	<string name="demo_activity_decode_sw">SW</string>
+	<string name="demo_activity_decode_hw">HW</string>
+	<string name="demo_activity_decode_hwFast">HWFAST</string>
+	<string name="demo_activity_decode_hwTexture">HWTEX</string>
+	<string name="demo_activity_filepath">File Path</string>
+		<!-- quality -->
+		<string name="quality_activity_bright">Brightness</string>
+		<string name="quality_activity_contrast">Contrast</string>
+		<string name="quality_activity_saturation">Saturation</string>
+		<string name="quality_activity_huen">Huen</string>
+</resources>

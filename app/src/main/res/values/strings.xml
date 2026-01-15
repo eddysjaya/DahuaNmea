@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">Dahua NMEA Recorder</string>
+    
+    <!-- Buttons -->
+    <string name="btn_start">START</string>
+    <string name="btn_stop">STOP</string>
+    
+    <!-- Status -->
+    <string name="status_ready">Ready</string>
+    <string name="status_recording">Recording…</string>
+    <string name="status_stopping">Stopping…</string>
+    <string name="status_stopped">Stopped</string>
+    
+    <!-- GPS -->
+    <string name="gps_searching">GPS: Searching…</string>
+    <string name="gps_ready">GPS: Ready</string>
+    <string name="gps_active">GPS: Active</string>
+    <string name="gps_error">GPS: Error</string>
+    
+    <!-- Permissions -->
+    <string name="permission_required">Permissions Required</string>
+    <string name="permission_camera">Camera permission is required for video recording</string>
+    <string name="permission_location">Location permission is required for GPS tracking</string>
+    <string name="permission_audio">Audio permission is required for video recording</string>
+    <string name="permission_storage">Storage permission is required to save files</string>
+    
+    <!-- Notifications -->
+    <string name="notification_channel_name">Recording Service</string>
+    <string name="notification_channel_desc">Shows recording status</string>
+    <string name="notification_title">Recording in progress</string>
+    <string name="notification_text">Video and GPS tracking active</string>
+    
+    <!-- Messages -->
+    <string name="msg_recording_started">Recording started</string>
+    <string name="msg_recording_stopped">Recording stopped</string>
+    <string name="msg_files_saved">Files saved successfully</string>
+    <string name="msg_error">Error: %s</string>
+</resources>
