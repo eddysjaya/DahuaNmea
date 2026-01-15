@@ -55,3 +55,7 @@ obj/
 
 # Android Profiling
 *.hprof
+
+# Large video files
+received_files/*.mp4
+test_*.mp4
