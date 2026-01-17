@@ -6,8 +6,6 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
 import android.os.Build
 import android.os.FileObserver
 import android.os.IBinder
@@ -15,6 +13,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.dahua.nmea.utils.FileManager
 import com.dahua.nmea.utils.NmeaGenerator
+import com.dahua.nmea.utils.PassiveGpsListener
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileWriter
@@ -37,7 +36,7 @@ class DsjCameraMonitorService : Service() {
     
     private var fileObserver: FileObserver? = null
     private var pollingJob: kotlinx.coroutines.Job? = null
-    private var locationManager: LocationManager? = null
+    private var passiveGpsListener: PassiveGpsListener? = null
     private var currentNmeaFile: File? = null
     private var currentNmeaWriter: FileWriter? = null
     private var currentVideoFile: File? = null
@@ -48,47 +47,19 @@ class DsjCameraMonitorService : Service() {
     private val gpsBuffer = mutableListOf<Pair<Long, Location>>() // Buffer of (timestamp, location)
     private val maxBufferSize = 300 // Keep last 5 minutes (300 seconds)
     
-    private val locationListener = object : LocationListener {
-        override fun onLocationChanged(location: Location) {
-            Log.e(TAG, "GPS UPDATE: lat=${location.latitude}, lon=${location.longitude}, provider=${location.provider}, accuracy=${location.accuracy}m")
-            // Store location in buffer with timestamp
-            synchronized(gpsBuffer) {
-                gpsBuffer.add(Pair(System.currentTimeMillis(), location))
-                Log.e(TAG, "Buffer size: ${gpsBuffer.size}")
-                // Keep buffer size manageable
-                while (gpsBuffer.size > maxBufferSize) {
-                    gpsBuffer.removeAt(0)
-                }
-            }
-            // Also write to current file if recording
-            writeNmeaData(location)
-        }
-        
-        override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) {
-            Log.e(TAG, "Location status changed: provider=$provider, status=$status")
-        }
-        override fun onProviderEnabled(provider: String) {
-            Log.e(TAG, "Location provider enabled: $provider")
-        }
-        override fun onProviderDisabled(provider: String) {
-            Log.e(TAG, "Location provider disabled: $provider")
-        }
-    }
-    
     override fun onCreate() {
         super.onCreate()
-        Log.e(TAG, "=== SERVICE CREATED ===")
-        
+Log.e(TAG, "=== SERVICE CREATED (PASSIVE GPS MODE) ===")
+
         try {
-            locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
             startForeground(NOTIFICATION_ID, createNotification())
-            startGpsTracking() // Start GPS immediately for buffering
+            startPassiveGpsListening() // Start passive GPS listening immediately
             
             // Add test GPS data for verification (will be replaced by real GPS)
             addTestGpsData()
             
             startMonitoring()
-            Log.e(TAG, "=== SERVICE STARTED SUCCESSFULLY ===")
+            Log.e(TAG, "=== SERVICE STARTED SUCCESSFULLY - LISTENING TO DSJ CAMERA GPS ===")
         } catch (e: Exception) {
             Log.e(TAG, "=== SERVICE CREATE ERROR ===", e)
         }
@@ -294,11 +265,8 @@ class DsjCameraMonitorService : Service() {
             currentNmeaWriter?.write("# Video: ${videoFile.name}\n")
             currentNmeaWriter?.write("# Started: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())}\n")
             currentNmeaWriter?.flush()
-            
-            // Start GPS tracking
-            startGpsTracking()
-            
-            Log.d(TAG, "GPS tracking started")
+
+            Log.d(TAG, "Passive GPS listening active (piggybacking on DSJ Camera)")
             updateNotification("Tracking: ${videoFile.name}")
             
         } catch (e: Exception) {
@@ -310,10 +278,8 @@ class DsjCameraMonitorService : Service() {
         if (currentVideoFile != null) {
             Log.d(TAG, "=== RECORDING STOPPED ===")
             Log.d(TAG, "Video: ${currentVideoFile?.name}")
-            
-            stopGpsTracking()
-            
-            currentNmeaWriter?.write("# Stopped: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())}\n")
+
+            currentNmeaWriter?.write("# Stopped:${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())}\n")
             currentNmeaWriter?.close()
             currentNmeaWriter = null
             
@@ -323,7 +289,7 @@ class DsjCameraMonitorService : Service() {
             currentVideoFile = null
             lastVideoSize = 0
             
-            updateNotification("Monitoring DSJ Camera...")
+            updateNotification("Monitoring DSJ Camera (Passive GPS active)...")
         }
     }
     
@@ -371,69 +337,44 @@ class DsjCameraMonitorService : Service() {
         }
     }
     
-    private fun startGpsTracking() {
+private fun startPassiveGpsListening() {
         try {
-            Log.e(TAG, "Attempting to start GPS tracking...")
+            Log.e(TAG, "🚀 Starting PASSIVE GPS listening (piggybacking on DSJ Camera)...")
             
-            // Request updates from both GPS and Network providers
-            if (locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER) == true) {
-                locationManager?.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER,
-                    500L, // 0.5 seconds (500ms)
-                    0f,
-                    locationListener
-                )
-                Log.e(TAG, "GPS_PROVIDER registered with 500ms interval")
-            } else {
-                Log.e(TAG, "GPS_PROVIDER not available")
-            }
-            
-            if (locationManager?.isProviderEnabled(LocationManager.NETWORK_PROVIDER) == true) {
-                locationManager?.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER,
-                    500L, // 0.5 seconds (500ms)
-                    0f,
-                    locationListener
-                )
-                Log.e(TAG, "NETWORK_PROVIDER registered with 500ms interval")
-            } else {
-                Log.e(TAG, "NETWORK_PROVIDER not available")
-            }
-            
-            // Try to get last known location to seed buffer
-            val lastGpsLocation = locationManager?.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            val lastNetworkLocation = locationManager?.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-            
-            val lastLocation = when {
-                lastGpsLocation != null -> lastGpsLocation
-                lastNetworkLocation != null -> lastNetworkLocation
-                else -> null
-            }
-            
-            if (lastLocation != null) {
-                Log.e(TAG, "Last known location: lat=${lastLocation.latitude}, lon=${lastLocation.longitude}")
-                // Add to buffer
+            passiveGpsListener = PassiveGpsListener(this) { location ->
+                // Handle GPS updates
+                Log.e(TAG, "🌍 PASSIVE GPS UPDATE: lat=${location.latitude}, lon=${location.longitude}, provider=${location.provider}, accuracy=${location.accuracy}m")
+                
+                // Store location in buffer with timestamp
                 synchronized(gpsBuffer) {
-                    gpsBuffer.add(Pair(System.currentTimeMillis(), lastLocation))
+                    gpsBuffer.add(Pair(System.currentTimeMillis(), location))
+                    Log.e(TAG, "📊 Buffer size: ${gpsBuffer.size}")
+                    // Keep buffer size manageable
+                    while (gpsBuffer.size > maxBufferSize) {
+                        gpsBuffer.removeAt(0)
+                    }
                 }
-            } else {
-                Log.e(TAG, "No last known location available")
+                // Also write to current file if recording
+                writeNmeaData(location)
             }
             
-            Log.e(TAG, "GPS tracking started successfully!")
+            passiveGpsListener?.startListening()
+            
+            Log.e(TAG, "✅ Passive GPS listener active - no battery drain, using DSJ Camera GPS!")
         } catch (e: SecurityException) {
-            Log.e(TAG, "No location permission: ${e.message}")
+            Log.e(TAG, "❌ No location permission: ${e.message}")
         } catch (e: Exception) {
-            Log.e(TAG, "GPS tracking error", e)
+            Log.e(TAG, "❌ Passive GPS error", e)
         }
     }
-    
-    private fun stopGpsTracking() {
+
+    private fun stopPassiveGpsListening() {
         try {
-            locationManager?.removeUpdates(locationListener)
-            Log.d(TAG, "GPS tracking stopped")
+            passiveGpsListener?.stopListening()
+            passiveGpsListener = null
+            Log.d(TAG, "Passive GPS listener stopped")
         } catch (e: Exception) {
-            Log.e(TAG, "Error stopping GPS: ${e.message}")
+            Log.e(TAG, "Error stopping passive GPS: ${e.message}")
         }
     }
     
@@ -476,8 +417,8 @@ class DsjCameraMonitorService : Service() {
         createNotificationChannel()
         
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("DSJ Camera Monitor")
-            .setContentText("Monitoring DSJ Camera recordings...")
+            .setContentTitle("DSJ Camera Monitor (Passive GPS)")
+            .setContentText("Listening to DSJ Camera GPS - No battery drain")
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
@@ -516,8 +457,9 @@ class DsjCameraMonitorService : Service() {
         super.onDestroy()
         pollingJob?.cancel()
         fileObserver?.stopWatching()
-        stopGpsTracking()
+        stopPassiveGpsListening()
         currentNmeaWriter?.close()
-        Log.d(TAG, "Service destroyed")
+        Log.d(TAG, "Service destroyed (Passive GPS stopped)")
     }
 }
+

@@ -14,18 +14,39 @@
         
         <!-- Top Toolbar -->
         <Border Grid.Row="0" Background="#2C3E50" Padding="10">
-            <StackPanel Orientation="Horizontal">
-                <Button x:Name="btnDownload" Content="📥 Download from Device" Click="BtnDownload_Click" 
-                        Background="#27AE60" Foreground="White" FontWeight="Bold"/>
-                <Button x:Name="btnRefresh" Content="🔄 Refresh List" Click="BtnRefresh_Click"
-                        Background="#3498DB" Foreground="White"/>
-                <Button x:Name="btnClearAll" Content="🗑 Clear All Sessions" Click="BtnClearAll_Click"
-                        Background="#E74C3C" Foreground="White"/>
-                <Button x:Name="btnSettings" Content="⚙ Settings" Click="BtnSettings_Click"
-                        Background="#95A5A6" Foreground="White"/>
-                <TextBlock x:Name="txtStatus" Foreground="White" Margin="20,0,0,0" 
-                           VerticalAlignment="Center" FontStyle="Italic"/>
-            </StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <Button x:Name="btnDownload" Content="📥 Download from Device" Click="BtnDownload_Click" 
+                            Background="#27AE60" Foreground="White" FontWeight="Bold"/>
+                    <Button x:Name="btnRefresh" Content="🔄 Refresh List" Click="BtnRefresh_Click"
+                            Background="#3498DB" Foreground="White"/>
+                    <Button x:Name="btnClearAll" Content="🗑 Clear All Sessions" Click="BtnClearAll_Click"
+                            Background="#E74C3C" Foreground="White"/>
+                    <Button x:Name="btnSettings" Content="⚙ Settings" Click="BtnSettings_Click"
+                            Background="#95A5A6" Foreground="White"/>
+                    <TextBlock x:Name="txtStatus" Foreground="White" Margin="20,0,0,0" 
+                               VerticalAlignment="Center" FontStyle="Italic"/>
+                </StackPanel>
+                
+                <!-- Progress Bar (Hidden by default) -->
+                <Grid Grid.Row="1" x:Name="progressPanel" Visibility="Collapsed" Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ProgressBar x:Name="downloadProgressBar" Height="25" 
+                                 Minimum="0" Maximum="100" Value="0"
+                                 Background="#34495E" Foreground="#27AE60"/>
+                    <TextBlock x:Name="txtProgressPercent" Grid.Column="1" 
+                               Text="0%" Foreground="White" Margin="10,0,0,0" 
+                               VerticalAlignment="Center" FontWeight="Bold" FontSize="14"/>
+                </Grid>
+            </Grid>
         </Border>
         
         <!-- Main Content Area -->
@@ -88,21 +109,54 @@
                 </Grid>
             </Border>
             
-            <!-- Right Panel: Video and Map -->
+            <!-- Right Panel: Map, Video, and Table -->
             <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="1.2*"/>
+                </Grid.ColumnDefinitions>
                 
-                <Grid Grid.Row="0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="2.5*"/>
-                    </Grid.ColumnDefinitions>
+                <!-- Map View (Center - Large) -->
+                <Border Grid.Column="0" Background="White" Margin="5">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <Grid Grid.Row="0">
+                            <wv2:WebView2 x:Name="mapWebView" />
+                            <TextBlock x:Name="txtMapPlaceholder" Text="🗺 No GPS data"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                                     Foreground="Gray" FontSize="24" FontWeight="Bold"/>
+                        </Grid>
+                        
+                        <!-- File Info Display -->
+                        <Border Grid.Row="1" Background="#ECF0F1" BorderBrush="#BDC3C7" BorderThickness="0,1,0,0" Padding="8">
+                            <StackPanel>
+                                <TextBlock>
+                                    <Run Text="📹 Video: " Foreground="#E67E22" FontWeight="Bold"/>
+                                    <Run x:Name="txtCurrentVideoFile" Text="-" Foreground="#2C3E50"/>
+                                </TextBlock>
+                                <TextBlock Margin="0,3,0,0">
+                                    <Run Text="📍 NMEA: " Foreground="#27AE60" FontWeight="Bold"/>
+                                    <Run x:Name="txtCurrentNmeaFile" Text="-" Foreground="#2C3E50"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+                
+                <!-- Video + Table (Right - Vertical Stack) -->
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="1.5*"/>
+                    </Grid.RowDefinitions>
                     
                     <!-- Video Player -->
-                    <Border Grid.Column="0" Background="Black" Margin="5">
+                    <Border Grid.Row="0" Background="Black" Margin="5">
                         <Grid>
                             <MediaElement x:Name="mediaPlayer" LoadedBehavior="Manual" 
                                         ScrubbingEnabled="True" Stretch="Uniform"
@@ -110,75 +164,48 @@
                                         MediaEnded="MediaPlayer_MediaEnded"/>
                             <TextBlock x:Name="txtVideoPlaceholder" Text="📹 No video selected"
                                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                                     Foreground="White" FontSize="24" FontWeight="Bold"/>
+                                     Foreground="White" FontSize="20" FontWeight="Bold"/>
                         </Grid>
                     </Border>
                     
-                    <!-- Map View -->
-                    <Border Grid.Column="1" Background="White" Margin="5">
+                    <!-- Video Controls -->
+                    <Border Grid.Row="1" Background="#34495E" Padding="8" Margin="5,0">
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             
-                            <Grid Grid.Row="0">
-                                <wv2:WebView2 x:Name="mapWebView" />
-                                <TextBlock x:Name="txtMapPlaceholder" Text="🗺 No GPS data"
-                                         HorizontalAlignment="Center" VerticalAlignment="Center"
-                                         Foreground="Gray" FontSize="24" FontWeight="Bold"/>
-                            </Grid>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button x:Name="btnPlay" Content="▶" Click="BtnPlay_Click" Width="45" Height="35"
+                                        Background="#27AE60" Foreground="White" FontSize="16"/>
+                                <Button x:Name="btnPause" Content="⏸" Click="BtnPause_Click" Width="45" Height="35"
+                                        Background="#E67E22" Foreground="White" FontSize="16"/>
+                                <Button x:Name="btnStop" Content="⏹" Click="BtnStop_Click" Width="45" Height="35"
+                                        Background="#E74C3C" Foreground="White" FontSize="16"/>
+                            </StackPanel>
                             
-                            <!-- File Info Display -->
-                            <Border Grid.Row="1" Background="#ECF0F1" BorderBrush="#BDC3C7" BorderThickness="0,1,0,0" Padding="8">
-                                <StackPanel>
-                                    <TextBlock>
-                                        <Run Text="📹 Video: " Foreground="#E67E22" FontWeight="Bold"/>
-                                        <Run x:Name="txtCurrentVideoFile" Text="-" Foreground="#2C3E50"/>
-                                    </TextBlock>
-                                    <TextBlock Margin="0,3,0,0">
-                                        <Run Text="📍 NMEA: " Foreground="#27AE60" FontWeight="Bold"/>
-                                        <Run x:Name="txtCurrentNmeaFile" Text="-" Foreground="#2C3E50"/>
-                                    </TextBlock>
-                                </StackPanel>
-                            </Border>
+                            <Grid Grid.Row="1" Margin="0,5,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" x:Name="txtCurrentTime" Text="00:00" Foreground="White" FontSize="11"/>
+                                <Slider Grid.Column="1" x:Name="sliderProgress" VerticalAlignment="Center" 
+                                       Minimum="0" Maximum="100" Margin="5,0"
+                                       ValueChanged="SliderProgress_ValueChanged"/>
+                                <TextBlock Grid.Column="2" x:Name="txtTotalTime" Text="00:00" Foreground="White" FontSize="11"/>
+                            </Grid>
                         </Grid>
                     </Border>
+                    
+                    <!-- GPS Table -->
+                    <Border Grid.Row="2" Background="White" Margin="5" BorderBrush="#BDC3C7" BorderThickness="1">
+                        <wv2:WebView2 x:Name="tableWebView" />
+                    </Border>
                 </Grid>
-                
-                <!-- Video Controls -->
-                <Border Grid.Row="1" Background="#34495E" Padding="10">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <StackPanel Grid.Column="0" Orientation="Horizontal">
-                            <Button x:Name="btnPlay" Content="▶" Click="BtnPlay_Click" Width="50"
-                                    Background="#27AE60" Foreground="White" FontSize="18"/>
-                            <Button x:Name="btnPause" Content="⏸" Click="BtnPause_Click" Width="50"
-                                    Background="#E67E22" Foreground="White" FontSize="18"/>
-                            <Button x:Name="btnStop" Content="⏹" Click="BtnStop_Click" Width="50"
-                                    Background="#E74C3C" Foreground="White" FontSize="18"/>
-                        </StackPanel>
-                        
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="20,0">
-                            <TextBlock x:Name="txtCurrentTime" Text="00:00" Foreground="White" Width="50"/>
-                            <Slider x:Name="sliderProgress" VerticalAlignment="Center" 
-                                   Minimum="0" Maximum="100" Width="300"
-                                   ValueChanged="SliderProgress_ValueChanged"/>
-                            <TextBlock x:Name="txtTotalTime" Text="00:00" Foreground="White" Width="50" Margin="10,0,0,0"/>
-                        </StackPanel>
-                        
-                        <StackPanel Grid.Column="2" Orientation="Horizontal">
-                            <TextBlock Text="🔊" Foreground="White" VerticalAlignment="Center"/>
-                            <Slider x:Name="sliderVolume" Width="100" Minimum="0" Maximum="1" Value="0.5"
-                                   ValueChanged="SliderVolume_ValueChanged" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
             </Grid>
         </Grid>
         

@@ -43,9 +43,11 @@ namespace DahuaNmeaViewer
             try
             {
                 await mapWebView.EnsureCoreWebView2Async();
+                await tableWebView.EnsureCoreWebView2Async();
                 
                 // Enable console message logging for debugging
                 mapWebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
+                tableWebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
                 
                 // Add console message handler to see errors
                 mapWebView.CoreWebView2.WebMessageReceived += (s, e) =>
@@ -103,7 +105,13 @@ namespace DahuaNmeaViewer
         private async void BtnDownload_Click(object sender, RoutedEventArgs e)
         {
             btnDownload.IsEnabled = false;
+            progressPanel.Visibility = Visibility.Visible;
+            downloadProgressBar.Value = 0;
+            txtProgressPercent.Text = "0%";
             txtStatus.Text = "Starting download...";
+            
+            int totalFiles = 0;
+            int currentFile = 0;
             
             try
             {
@@ -113,17 +121,63 @@ namespace DahuaNmeaViewer
                 txtStatus.Text = $"Target directory: {dataDirectory}";
                 await Task.Delay(500);
                 
+                // Custom progress callback with file counting
                 var result = await adbManager.DownloadFilesAsync(dataDirectory, 
-                    (progress) => Dispatcher.Invoke(() => txtStatus.Text = progress));
+                    (progress) => Dispatcher.Invoke(() => 
+                    {
+                        txtStatus.Text = progress;
+                        
+                        // Count total files on first "Found X video(s)" message
+                        if (progress.Contains("Found") && progress.Contains("video"))
+                        {
+                            var parts = progress.Split(' ');
+                            for (int i = 0; i < parts.Length; i++)
+                            {
+                                if (parts[i] == "Found" && i + 1 < parts.Length)
+                                {
+                                    if (int.TryParse(parts[i + 1], out int count))
+                                    {
+                                        totalFiles = count;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Update progress bar when completing files
+                        if (progress.Contains("Complete!") && totalFiles > 0)
+                        {
+                            currentFile++;
+                            double percentage = ((double)currentFile / totalFiles) * 100;
+                            downloadProgressBar.Value = percentage;
+                            txtProgressPercent.Text = $"{percentage:F0}%";
+                        }
+                        
+                        // Set to 100% when done
+                        if (progress.Contains("Download complete"))
+                        {
+                            downloadProgressBar.Value = 100;
+                            txtProgressPercent.Text = "100%";
+                        }
+                    }));
+                
+                downloadProgressBar.Value = 100;
+                txtProgressPercent.Text = "100%";
+                txtStatus.Text = "Download complete!";
                 
                 MessageBox.Show(result, "Download Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                 LoadSessions();
+                
+                // Hide progress bar after 2 seconds
+                await Task.Delay(2000);
+                progressPanel.Visibility = Visibility.Collapsed;
             }
             catch (Exception ex)
             {
                 var errorMsg = $"Download failed!\n\nError: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}";
                 MessageBox.Show(errorMsg, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 txtStatus.Text = $"Error: {ex.Message}";
+                progressPanel.Visibility = Visibility.Collapsed;
             }
             finally
             {
@@ -268,28 +322,38 @@ namespace DahuaNmeaViewer
             {
                 Console.WriteLine($"[LoadMap] Loading map with {points.Count} GPS points");
                 
-                // Ensure WebView2 is initialized
+                // Ensure WebView2s are initialized
                 if (mapWebView.CoreWebView2 == null)
                 {
-                    Console.WriteLine("[LoadMap] Initializing WebView2...");
+                    Console.WriteLine("[LoadMap] Initializing map WebView2...");
                     await mapWebView.EnsureCoreWebView2Async();
                 }
                 
-                // Generate new HTML with current points
-                var html = MapHtmlGenerator.GenerateHtml(points);
+                if (tableWebView.CoreWebView2 == null)
+                {
+                    Console.WriteLine("[LoadMap] Initializing table WebView2...");
+                    await tableWebView.EnsureCoreWebView2Async();
+                }
                 
-                // Use unique temp file name to force reload
-                var tempPath = Path.Combine(Path.GetTempPath(), $"dahua_map_{DateTime.Now.Ticks}.html");
-                File.WriteAllText(tempPath, html);
+                // Generate map HTML
+                var mapHtml = MapHtmlGenerator.GenerateHtml(points);
+                var tempMapPath = Path.Combine(Path.GetTempPath(), $"dahua_map_{DateTime.Now.Ticks}.html");
+                File.WriteAllText(tempMapPath, mapHtml);
                 
-                Console.WriteLine($"[LoadMap] Generated HTML with {points.Count} points, saved to: {tempPath}");
+                // Generate table HTML
+                var tableHtml = MapHtmlGenerator.GenerateTableHtml(points);
+                var tempTablePath = Path.Combine(Path.GetTempPath(), $"dahua_table_{DateTime.Now.Ticks}.html");
+                File.WriteAllText(tempTablePath, tableHtml);
                 
-                // Navigate to new file URL (this forces a complete reload)
-                mapWebView.Source = new Uri(tempPath);
+                Console.WriteLine($"[LoadMap] Generated map and table HTML, loading...");
+                
+                // Navigate to new file URLs (forces complete reload)
+                mapWebView.Source = new Uri(tempMapPath);
+                tableWebView.Source = new Uri(tempTablePath);
                 
                 txtMapPlaceholder.Visibility = Visibility.Collapsed;
                 
-                Console.WriteLine("[LoadMap] Map loaded successfully");
+                Console.WriteLine("[LoadMap] Map and table loaded successfully");
             }
             catch (Exception ex)
             {
@@ -305,8 +369,21 @@ namespace DahuaNmeaViewer
         {
             if (mediaPlayer.NaturalDuration.HasTimeSpan)
             {
-                sliderProgress.Maximum = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                var duration = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                sliderProgress.Maximum = duration;
                 txtTotalTime.Text = FormatTime(mediaPlayer.NaturalDuration.TimeSpan);
+                
+                // Set default volume
+                mediaPlayer.Volume = 1.0; // Full volume
+                
+                // Log for debugging
+                System.Diagnostics.Debug.WriteLine($"=== VIDEO OPENED ===");
+                System.Diagnostics.Debug.WriteLine($"Duration: {duration} seconds");
+                System.Diagnostics.Debug.WriteLine($"Volume: {mediaPlayer.Volume}");
+                System.Diagnostics.Debug.WriteLine($"HasAudio: {mediaPlayer.HasAudio}");
+                
+                // Send actual video duration to JavaScript for accurate animation
+                SetVideoDuration(duration);
             }
         }
 
@@ -364,22 +441,50 @@ namespace DahuaNmeaViewer
             }
         }
 
-        private void SliderVolume_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (mediaPlayer != null)
-            {
-                mediaPlayer.Volume = sliderVolume.Value;
-            }
-        }
-
         private async void UpdateMapMarker(double currentSeconds)
         {
             try
             {
-                var script = $"updateMarkerPosition({currentSeconds});";
-                await mapWebView.CoreWebView2.ExecuteScriptAsync(script);
+                System.Diagnostics.Debug.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] UpdateMapMarker: {currentSeconds:F2}s");
+                
+                // Update map marker position
+                var mapScript = $"updateMarkerPosition({currentSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture)});";
+                await mapWebView.CoreWebView2.ExecuteScriptAsync(mapScript);
+                
+                // Get current point index from map
+                var indexResult = await mapWebView.CoreWebView2.ExecuteScriptAsync("window.currentDisplayIndex");
+                if (int.TryParse(indexResult, out int pointIndex))
+                {
+                    // Update table highlight
+                    var tableScript = $"highlightRow({pointIndex});";
+                    await tableWebView.CoreWebView2.ExecuteScriptAsync(tableScript);
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdateMapMarker error: {ex.Message}");
+            }
+        }
+
+        private async void SetVideoDuration(double durationSeconds)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"=== SETTING VIDEO DURATION ===");
+                System.Diagnostics.Debug.WriteLine($"Duration: {durationSeconds} seconds");
+                
+                // Wait for map to be ready
+                await Task.Delay(100);
+                
+                var script = $"if(typeof setVideoDuration === 'function') {{ setVideoDuration({durationSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture)}); }} else {{ console.error('setVideoDuration not found'); }}";
+                var result = await mapWebView.CoreWebView2.ExecuteScriptAsync(script);
+                
+                System.Diagnostics.Debug.WriteLine($"✅ Video duration sent to JavaScript: {result}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error setting video duration: {ex.Message}");
+            }
         }
 
         private string FormatTime(TimeSpan time)
